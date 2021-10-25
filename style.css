@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Scheherazade+New&display=swap');
+html, body {
+  margin: 0;
+  padding: 0;
+}
+canvas {
+  display: block;
+}
+body {
+  font-family: 'Scheherazade New', serif;
+  margin: 2em;
+  max-width: 700px;
+   background-image: RADIAL-gradient(circle at 20% 40%, #ff9ea3 20%, #9ed8ff 40%, #f8d4a5 60%,#C9EEF6 80%);
+}
+a {
+  color: #F2E307;
+}
+a:hover, a:visited:hover {
+  color: #77D9A1;
+}
+h1 {
+  font-style: italic;
+  color: #50C100;
+}
+h2 {
+  font-style: bold;
+  color: #13C9F2;
+}
+h3 {
+  color: #0050C1;
+}
+h4 {
+  text-decoration: underline;
+}
+p{
+  color: #50C100;
+  font-weight: bold;
+}
+canvas {
+  margin: auto;
+  width: 500px;
+  height: 500px;
+}
