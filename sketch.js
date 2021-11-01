@@ -1,107 +1,59 @@
-// Please note: dragging and dropping images only works for
-// certain browsers when serving this script online:
-var path, position, max;
-var count = 0;
-var grow = false;
+// Based on 'JPEG Raster' by Jonathan Puckey:
+// http://www.flickr.com/photos/puckey/3179779686/in/photostream/
 
-// As the web is asynchronous, we need to wait for the raster to
-// load before we can perform any operation on its pixels.
-//change to load my image from image folder
-var raster = new Raster({crossOrigin: "anonymous",
-  source:'images/selffie.JPEG'});
+// Create a raster item:
+var raster = new Raster('images/selfie.JPEG');
+var loaded = false;
+
+raster.on('load', function() {
+	loaded = true;
+	onResize();
+});
+
+// Make the raster invisible:
 raster.visible = false;
-raster.on('load', resetSpiral);
 
-// var text = new PointText({
-// 	justification: 'right',
-// 	fontSize: 12,
-// 	content: window.FileReader
-// 		? 'drag & drop an image from your desktop to rasterize it'
-// 		: 'to drag & drop images, please use Webkit, Firefox, Chrome or IE 10'
-// });
+var lastPos = view.center;
+function moveHandler(event) {
+	if (!loaded)
+		return;
+	if (lastPos.getDistance(event.point) < 10)
+		return;
+	lastPos = event.point;
 
-function onFrame(event) {
-	if (grow) {
-		if (raster.loaded && (view.center - position).length < max) {
-			for (var i = 0, l = count / 36 + 1; i < l; i++) {
-				growSpiral();
-			}
-			path.smooth();
-		} else {
-			grow = false;
-		}
-	}
-}
+	var size = this.bounds.size.clone();
+	var isLandscape = size.width > size.height;
 
-function growSpiral() {
-		count++;
-		var vector = new Point({
-			angle: count * 5,
-			length: count / 100
-		});
-		var rot = vector.rotate(90);
-		var color = raster.getAverageColor(position + vector / 2);
-		var value = color ? (1 - color.gray) * 3.7 : 0;
-		rot.length = Math.max(value, 0.2);
-		path.add(position + vector - rot);
-		path.insert(0, position + vector + rot);
-		position += vector;
-}
+	// If the path is in landscape orientation, we're going to
+	// split the path horizontally, otherwise vertically:
 
-function resetSpiral() {
-	grow = true;
+	size /= isLandscape ? [2, 1] : [1, 2];
 
-	// Transform the raster, so it fills the view:
-	raster.fitBounds(view.bounds);
-
-	if (path)
-		path.remove();
-
-	position = view.center;
-	count = 0;
-	path = new Path({
-		fillColor: 'lightBlue',
-		closed: true
+	var path = new Path.Rectangle({
+		point: this.bounds.topLeft.floor(),
+		size: size.ceil(),
+		onMouseMove: moveHandler
 	});
+	path.fillColor = raster.getAverageColor(path);
 
-	position = view.center;
-	max = Math.min(raster.bounds.width, raster.bounds.height) * 0.5;
+	var path = new Path.Rectangle({
+		point: isLandscape
+			? this.bounds.topCenter.ceil()
+			: this.bounds.leftCenter.ceil(),
+		size: size.floor(),
+		onMouseMove: moveHandler
+	});
+	path.fillColor = raster.getAverageColor(path);
+
+	this.remove();
 }
 
-function onResize() {
-	if (raster.loaded)
-		resetSpiral();
-	text.point = view.bounds.bottomRight - [30, 30];
+function onResize(event) {
+	if (!loaded)
+		return;
+	project.activeLayer.removeChildren();
+
+	// Transform the raster so that it fills the bounding rectangle
+	// of the view:
+	raster.fitBounds(view.bounds, true);
 }
-
-function onKeyDown(event) {
-	if (event.key == 'space') {
-		path.selected = !path.selected;
-	}
-}
-
-function onDocumentDrag(event) {
-	event.preventDefault();
-}
-
-function onDocumentDrop(event) {
-	event.preventDefault();
-
-	var file = event.dataTransfer.files[0];
-	var reader = new FileReader();
-
-	reader.onload = function (event) {
-		var image = document.createElement('img');
-		image.onload = function () {
-			raster = new Raster(image);
-			raster.visible = false;
-			resetSpiral();
-		};
-		image.src = event.target.result;
-	};
-	reader.readAsDataURL(file);
-}
-
-document.addEventListener('drop', onDocumentDrop, false);
-document.addEventListener('dragover', onDocumentDrag, false);
-document.addEventListener('dragleave', onDocumentDrag, false);
