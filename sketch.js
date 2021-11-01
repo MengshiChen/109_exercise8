@@ -17,7 +17,7 @@ var lastPos = view.center;
 function moveHandler(event) {
 	if (!loaded)
 		return;
-	if (lastPos.getDistance(event.point) < 10)
+	if (lastPos.getDistance(event.point) < 5)
 		return;
 	lastPos = event.point;
 
@@ -56,4 +56,11 @@ function onResize(event) {
 	// Transform the raster so that it fills the bounding rectangle
 	// of the view:
 	raster.fitBounds(view.bounds, true);
+	// Create a path that fills the view, and fill it with
+  // the average color of the raster:
+  new Path.Rectangle({
+    rectangle: view.bounds,
+    fillColor: raster.getAverageColor(view.bounds),
+    onMouseMove: moveHandler
+  });
 }

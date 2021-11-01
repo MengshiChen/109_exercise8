@@ -4,11 +4,15 @@ html, body {
   padding: 0;
   width: 700px;
   height: 100%;
+  background-color: black;
 }
 
+h1{
+color:green;  
+}
 
 canvas [resize]{
   margin: auto;
-  width: 500px;
-  height: 500px;
+  width: 700px;
+  height: 700px;
 }
